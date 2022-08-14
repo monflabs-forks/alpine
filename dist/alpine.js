@@ -1018,6 +1018,7 @@
     }
 
     return (event, currentValue) => {
+      // Should this be removed as this seems IE11 only?
       // Check for event.detail due to an issue where IE11 handles other events as a CustomEvent.
       if (event instanceof CustomEvent && event.detail) {
         return event.detail;
@@ -1425,7 +1426,6 @@
   /** version: 0.26.0 */
 
   function wrap(data, mutationCallback) {
-
     let membrane = new ReactiveMembrane({
       valueMutated(target, key) {
         mutationCallback(target, key);
@@ -1463,8 +1463,7 @@
           }
         });
       });
-      this.unobservedData = componentForClone ? componentForClone.getUnobservedData() : saferEval(el, dataExpression, dataExtras);
-      // Construct a Proxy-based observable. This will be used to handle reactivity.
+      this.unobservedData = componentForClone ? componentForClone.getUnobservedData() : saferEval(el, dataExpression, dataExtras); // Construct a Proxy-based observable. This will be used to handle reactivity.
 
       let {
         membrane,
@@ -1487,11 +1486,7 @@
       this.unobservedData.$watch = (property, callback) => {
         if (!this.watchers[property]) this.watchers[property] = [];
         this.watchers[property].push(callback);
-      };
-      /* MODERN-ONLY:START */
-      // We remove this piece of code from the legacy build.
-      // In IE11, we have already defined our helpers at this point.
-      // Register custom magic properties.
+      }; // Register custom magic properties.
 
 
       Object.entries(Alpine.magicProperties).forEach(([name, callback]) => {
@@ -1501,8 +1496,6 @@
           }
         });
       });
-      /* MODERN-ONLY:END */
-
       this.showDirectiveStack = [];
       this.showDirectiveLastElement;
       componentForClone || Alpine.onBeforeComponentInitializeds.forEach(callback => callback(this));
@@ -1822,8 +1815,7 @@
 
     getRefsProxy() {
       var self = this;
-      var refObj = {};
-      // One of the goals of this is to not hold elements in memory, but rather re-evaluate
+      var refObj = {}; // One of the goals of this is to not hold elements in memory, but rather re-evaluate
       // the DOM when the system needs something from it. This way, the framework is flexible and
       // friendly to outside DOM changes from libraries like Vue/Livewire.
       // For this reason, I'm using an "on-demand" proxy to fake a "$refs" object.

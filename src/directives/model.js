@@ -28,6 +28,7 @@ function generateModelAssignmentFunction(el, modifiers, expression) {
     }
 
     return (event, currentValue) => {
+        // Should this be removed as this seems IE11 only?
         // Check for event.detail due to an issue where IE11 handles other events as a CustomEvent.
         if (event instanceof CustomEvent && event.detail) {
             return event.detail

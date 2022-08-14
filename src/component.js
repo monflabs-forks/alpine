@@ -29,21 +29,6 @@ export default class Component {
 
         this.unobservedData = componentForClone ? componentForClone.getUnobservedData() : saferEval(el, dataExpression, dataExtras)
 
-        /* IE11-ONLY:START */
-            // For IE11, add our magic properties to the original data for access.
-            // The Proxy polyfill does not allow properties to be added after creation.
-            this.unobservedData.$el = null
-            this.unobservedData.$refs = null
-            this.unobservedData.$nextTick = null
-            this.unobservedData.$watch = null
-            // The IE build uses a proxy polyfill which doesn't allow properties
-            // to be defined after the proxy object is created so,
-            // for IE only, we need to define our helpers earlier.
-            Object.entries(Alpine.magicProperties).forEach(([name, callback]) => {
-                Object.defineProperty(this.unobservedData, `$${name}`, { get: function () { return callback(canonicalComponentElementReference, this.$el) } });
-            })
-        /* IE11-ONLY:END */
-
         // Construct a Proxy-based observable. This will be used to handle reactivity.
         let { membrane, data } = this.wrapDataInObservable(this.unobservedData)
         this.$data = data
@@ -66,16 +51,10 @@ export default class Component {
             this.watchers[property].push(callback)
         }
 
-
-        /* MODERN-ONLY:START */
-        // We remove this piece of code from the legacy build.
-        // In IE11, we have already defined our helpers at this point.
-
         // Register custom magic properties.
         Object.entries(Alpine.magicProperties).forEach(([name, callback]) => {
             Object.defineProperty(this.unobservedData, `$${name}`, { get: function () { return callback(canonicalComponentElementReference, this.$el) } });
         })
-        /* MODERN-ONLY:END */
 
         this.showDirectiveStack = []
         this.showDirectiveLastElement
@@ -427,20 +406,6 @@ export default class Component {
         var self = this
 
         var refObj = {}
-
-        /* IE11-ONLY:START */
-            // Add any properties up-front that might be necessary for the Proxy polyfill.
-            refObj.$isRefsProxy = false;
-            refObj.$isAlpineProxy = false;
-
-            // If we are in IE, since the polyfill needs all properties to be defined before building the proxy,
-            // we just loop on the element, look for any x-ref and create a tmp property on a fake object.
-            this.walkAndSkipNestedComponents(self.$el, el => {
-                if (el.hasAttribute('x-ref')) {
-                    refObj[el.getAttribute('x-ref')] = true
-                }
-            })
-        /* IE11-ONLY:END */
 
         // One of the goals of this is to not hold elements in memory, but rather re-evaluate
         // the DOM when the system needs something from it. This way, the framework is flexible and
